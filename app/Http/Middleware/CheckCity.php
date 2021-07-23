@@ -18,12 +18,14 @@ class CheckCity
      */
     public function handle(Request $request, Closure $next)
     {
+        //Code logic middleware ở đây
         $customer = Customer::where('customerNumber',$request->id)->get()->first();
         if($customer->city == 'Nantes'){
             return $next($request);
         }else{
-            dd('Bị cách ly!');
+            toastr()->error('Chỉ được xem thông tin người ở Nantes', 'Error!!!');
+            return redirect()->route('customers.list');
+//            dd(123);
         }
-        //Code logic middleware ở đây
     }
 }

@@ -6,37 +6,36 @@ use App\Http\Controllers\Repositories\CustomerModel;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use MongoDB\Driver\Session;
 
 class CustomerController extends Controller
 {
-    protected $customerModel;
-    public function __construct(CustomerModel $customerModel)
+    protected $customer;
+    public function __construct(Customer $customer)
     {
-        $this->customerModel = $customerModel;
+        $this->customer = $customer;
     }
 
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\Response
      */
     public function index()
     {
-        //
-        $customers = $this->customerModel->getPostById();
-//        dd($customer);
-        return view('customer.list',compact('customers'));
+
+        $customers = Customer::paginate(9);
+        return view('backend.customer.list',compact('customers'));
     }
 
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\Response
      */
     public function create()
     {
-        //
-
+        return view('backend.customer.create');
     }
 
     /**
@@ -45,9 +44,15 @@ class CustomerController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, Customer $customer)
     {
-        //
+        $customer->contactLastName = $request->input('last');
+        $customer->contactFirstName = $request->input('first');
+        $customer->phone = $request->input('phone');
+        $customer->city = $request->input('city');
+        $customer->save();
+        toastr()->success('Create success', 'Create');
+        return redirect()->route('customers.list');
     }
 
     /**
@@ -69,7 +74,8 @@ class CustomerController extends Controller
      */
     public function edit($id)
     {
-        //
+        $customer = DB::table('customers')->where('customerNumber', $id)->get()->first();
+        return view('backend.customer.update', compact('customer'));
     }
 
     /**
@@ -81,7 +87,15 @@ class CustomerController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $data = [
+            'contactLastName' => $request->input('last'),
+            'contactFirstName' => $request->input('first'),
+            'phone' => $request->input('phone'),
+            'city' => $request->input('city')
+        ];
+        DB::table('customers')->where('customerNumber', $id)->update($data);
+        return redirect()->route('customers.list');
+
     }
 
     /**
@@ -92,13 +106,30 @@ class CustomerController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            DB::table('customers')->where('customerNumber', $id)->delete();
+            toastr()->success('delete success', 'Delete');
+            return  redirect()->route('customers.list');
+        } catch (\PDOException $exception) {
+            dd('Ràng buộc khoá ngoại');
+        }
     }
 
     public function showProfile($id)
     {
-        $customer = DB::table('customers')->where('customerNumber', $id)->get();
-//        dd($customer);
-        return view('customer.profile',compact('customer'));
+        $customer = DB::table('customers')->where('customerNumber', $id)->get()->first();
+        return view('backend.customer.profile',compact('customer'));
+    }
+
+    public function search(Request $request)
+    {
+        $text = $request->input('name');
+        $customers = Customer::where('contactLastName', 'LIKE', '%'. $text . '%' )->get();
+        if (!empty($request->input('name'))){
+            toastr()->success('n kết quả', 'Success');
+        } else {
+            toastr()->error('Empty', 'Error');
+        }
+        return view('backend.customer.search', compact('customers'));
     }
 }

@@ -9,6 +9,5 @@
 </head>
 <body>
     <p>Hello {{ $name }}</p>
-{{--    <p>Hello</p>--}}
 </body>
 </html>

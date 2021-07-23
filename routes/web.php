@@ -23,8 +23,11 @@ use Illuminate\Support\Facades\Route;
  * */
 
 Route::get('/', function () {
-    return view('welcome');
-//    dd('Hello');
+        return view('welcome');
+});
+Route::prefix('user')->group(function (){
+    Route::get('/login', [\App\Http\Controllers\UserController::class, 'checkInput'])->name('login');
+    Route::post('/login', [\App\Http\Controllers\UserController::class, 'login']);
 });
 
 //Route::get('/products',[HomeController::class,'index']);
@@ -37,17 +40,21 @@ Route::prefix('products')->group(function (){
 });
 
 Route::prefix('users')->group(function (){
-    Route::get('/login',function (){
-        return view('login');
-    })->name('showFormLogin');
-    Route::post('/login',[HomeController::class,'login']);
+
     Route::get('/{name}',[HomeController::class,'showProfile'])->name('profile');
     Route::get('create',[HomeController::class,'store'])->name('users.create');
 });
 Route::prefix('customers')->group(function (){
+    Route::get('/search', [CustomerController::class, 'search'])->name('search');
     Route::get('/',[CustomerController::class,'index'])->name('customers.list');
+    Route::get('/create',[CustomerController::class,'create'])->name('customers.create');
+    Route::post('/create',[CustomerController::class,'store']);
+    Route::get('/{customerNumber}',[CustomerController::class,'destroy'])->name('customer.delete');
     Route::get('profile/{id}',[CustomerController::class,'showProfile'])->name('customers.profile')->middleware('checkCity');
+    Route::get('edit/{id}',[CustomerController::class,'edit'])->name('customer.edit');
+    Route::post('edit/{id}',[CustomerController::class,'update']);
 });
+
 //Route::get('/products','HomeController@index');
 //CRUD
 //GET

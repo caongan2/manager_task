@@ -10,4 +10,9 @@ class CustomerModel
     {
         return Customer::orderBy('customerNumber', 'desc')->get();
     }
+
+    public function create()
+    {
+        return view('customer.create');
+    }
 }
